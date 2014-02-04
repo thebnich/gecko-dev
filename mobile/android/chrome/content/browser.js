@@ -177,6 +177,10 @@ function dump(a) {
   Services.console.logStringMessage(a);
 }
 
+function sendMessageToJava(aMessage) {
+  return Services.androidBridge.handleGeckoMessage(JSON.stringify(aMessage));
+}
+
 function doChangeMaxLineBoxWidth(aWidth) {
   gReflowPending = null;
   let webNav = BrowserApp.selectedTab.window.QueryInterface(Ci.nsIInterfaceRequestor).getInterface(Ci.nsIWebNavigation);

@@ -27,6 +27,8 @@ import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.mozilla.gecko.favicons.OnFaviconLoadedListener;
 import org.mozilla.gecko.favicons.decoders.FaviconDecoder;
 import org.mozilla.gecko.gfx.BitmapUtils;
@@ -389,6 +391,22 @@ public class GeckoAppShell
 
         // Throws if unable to add the event due to capacity restrictions.
         PENDING_EVENTS.add(e);
+    }
+
+    public static void sendRequestToGecko(final GeckoRequest r) {
+        final String responseMessage = "Gecko:Request" + r.getId();
+        registerEventListener(responseMessage, new GeckoEventListener() {
+            @Override
+            public void handleMessage(String event, JSONObject message) {
+                unregisterEventListener(event, this);
+                try {
+                    r.onResponse(message.getJSONObject("response"));
+                } catch (JSONException e) {
+                    Log.e(LOGTAG, "Error parsing JSON response for request " + responseMessage, e);
+                }
+            }
+        });
+        sendEventToGecko(r.getGeckoEvent());
     }
 
     // Tell the Gecko event loop that an event is available.
