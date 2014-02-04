@@ -12,6 +12,7 @@ EXTRA_JS_MODULES += [
     'HelperApps.jsm',
     'Home.jsm',
     'HomeProvider.jsm',
+    'JavaRequest.jsm',
     'JNI.jsm',
     'LightweightThemeConsumer.jsm',
     'Messaging.jsm',

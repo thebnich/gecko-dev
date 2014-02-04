@@ -179,6 +179,10 @@ let Log = Cu.import("resource://gre/modules/AndroidLog.jsm", {}).AndroidLog;
 // the "debug" priority and a log tag.
 let dump = Log.d.bind(null, "Browser");
 
+function sendMessageToJava(aMessage) {
+  return Services.androidBridge.handleGeckoMessage(JSON.stringify(aMessage));
+}
+
 function doChangeMaxLineBoxWidth(aWidth) {
   gReflowPending = null;
   let webNav = BrowserApp.selectedTab.window.QueryInterface(Ci.nsIInterfaceRequestor).getInterface(Ci.nsIWebNavigation);
