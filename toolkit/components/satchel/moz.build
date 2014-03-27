@@ -9,6 +9,8 @@ XPCSHELL_TESTS_MANIFESTS += ['test/unit/xpcshell.ini']
 BROWSER_CHROME_MANIFESTS += ['test/browser/browser.ini']
 
 XPIDL_SOURCES += [
+    'nsIAutofillController.idl',
+    'nsIAutofillUIGlue.idl',
     'nsIFormAutoComplete.idl',
     'nsIFormFillController.idl',
     'nsIFormHistory.idl',
@@ -26,6 +28,7 @@ LOCAL_INCLUDES += [
 ]
 
 EXTRA_COMPONENTS += [
+    'AutofillController.js',
     'FormHistoryStartup.js',
     'nsFormAutoComplete.js',
     'nsInputListAutoComplete.js',
@@ -38,6 +41,9 @@ EXTRA_PP_COMPONENTS += [
 
 EXTRA_JS_MODULES += [
     'AutoCompleteE10S.jsm',
+    'AutofillContract.jsm',
+    'AutofillProvider.jsm',
+    'AutofillValidator.jsm',
     'nsFormAutoCompleteResult.jsm',
 ]
 
