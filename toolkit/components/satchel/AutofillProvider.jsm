@@ -19,12 +19,55 @@ var dummyDB = {
     mtime: 123,
     billingGuid: "Ag8dal2k",
     shippingGuid: null, // null = use billing
-    entries: []
+    entries: [
+      {
+        guid: "Ag8dal2k",
+        mtime: 123,
+        data: {
+          "name": "Brian Nicholson",
+          "email": "bnicholson@mozilla.com",
+          "tel": "408-555-5555",
+          "address-line1": "650 Castro St.",
+          "address-line2": "Suite 300",
+          "locality": "Mountain View",
+          "region": "CA",
+          "country": "US",
+          "postal-code": "94041"
+        }
+      },
+      {
+        guid: "909lZ2jl",
+        mtime: 789,
+        data: {
+          "name": "Brian Nicholson",
+          "email": "brn@mozilla.com",
+          "tel": "804-555-5555",
+          "address-line1": "1234 Peach Tree Ln.",
+          "locality": "Richmond",
+          "region": "VA",
+          "country": "US",
+          "postal-code": "23230"
+        }
+      }
+    ]
   },
   payment: {
     mtime: 456,
     paymentGuid: "fha811ZY",
-    entries: []
+    entries: [
+      {
+        guid: "fha811ZY",
+        mtime: 456,
+        data: {
+          "cc-name": "Brian R Nicholson",
+          "cc-number": "4111-1111-1111-1111",
+          "cc-exp-month": "01",
+          "cc-exp-year": "2015",
+          "cc-csc": "123",
+          "cc-type": "Visa"
+        }
+      }
+    ]
   }
 };
 
