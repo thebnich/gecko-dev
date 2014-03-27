@@ -248,5 +248,10 @@
         <attr name="floatingHintEditTextStyle" format="reference" />
     </declare-styleable>
 
+    <!-- Autofill -->
+    <declare-styleable name="AutofillEditText">
+        <attr name="autofillField" format="string" />
+    </declare-styleable>
+
 </resources>
 

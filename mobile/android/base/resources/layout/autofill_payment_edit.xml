@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+
+<!-- BRN: localize -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:gecko="http://schemas.android.com/apk/res-auto"
+              android:orientation="vertical"
+              android:layout_width="fill_parent"
+              android:layout_height="wrap_content">
+
+    <org.mozilla.gecko.autofill.AutofillEditText
+        android:id="@+id/ccName"
+        gecko:autofillField="cc-name"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:singleLine="true"
+        android:hint="Name" />
+
+    <TextView
+        android:id="@+id/ccType"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:singleLine="true"
+        android:hint="Credit card type" />
+
+    <org.mozilla.gecko.autofill.AutofillEditText
+        android:id="@+id/ccNumber"
+        gecko:autofillField="cc-number"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:singleLine="true"
+        android:inputType="number"
+        android:hint="Credit card number" />
+
+    <LinearLayout android:orientation="horizontal"
+                  android:layout_width="fill_parent"
+                  android:layout_height="wrap_content">
+
+        <org.mozilla.gecko.autofill.AutofillEditText
+            android:id="@+id/ccExpMonth"
+            gecko:autofillField="cc-exp-month"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:singleLine="true"
+            android:inputType="number"
+            android:hint="Exp month" />
+
+        <org.mozilla.gecko.autofill.AutofillEditText
+            android:id="@+id/ccExpYear"
+            gecko:autofillField="cc-exp-year"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:singleLine="true"
+            android:inputType="number"
+            android:hint="Exp year" />
+
+        <org.mozilla.gecko.autofill.AutofillEditText
+            android:id="@+id/ccCsc"
+            gecko:autofillField="cc-csc"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:singleLine="true"
+            android:inputType="number"
+            android:hint="CVC" />
+
+    </LinearLayout>
+
+</LinearLayout>

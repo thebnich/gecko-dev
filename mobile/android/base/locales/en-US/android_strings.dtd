@@ -123,6 +123,8 @@
 <!ENTITY pref_home_suggested_sites "Show site suggestions">
 <!ENTITY pref_home_suggested_sites_summary "Display shortcuts to sites on your homepage that we think you might find interesting">
 
+<!ENTITY pref_category_autofill "Autofill">
+
 <!-- Localization note: These are shown in the left sidebar on tablets -->
 <!ENTITY pref_header_customize "Customize">
 <!ENTITY pref_header_display "Display">

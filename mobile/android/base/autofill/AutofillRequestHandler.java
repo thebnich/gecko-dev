@@ -13,6 +13,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.Button;
 import android.widget.Spinner;
 
 /**
@@ -79,7 +80,8 @@ public class AutofillRequestHandler implements AutofillListener, DataListener {
         final Spinner paymentView = (Spinner) dialogView.findViewById(R.id.payment);
         final Spinner billingView = (Spinner) dialogView.findViewById(R.id.billing);
         final Spinner shippingView = (Spinner) dialogView.findViewById(R.id.shipping);
-        bindViews(activity, paymentView, billingView, shippingView, entries);
+        final Button manageButton = (Button) dialogView.findViewById(R.id.manage);
+        bindViews(activity, paymentView, billingView, shippingView, manageButton, entries);
 
         final AlertDialog.Builder builder = new AlertDialog.Builder(activity);
         builder.setView(dialogView);
@@ -132,6 +134,7 @@ public class AutofillRequestHandler implements AutofillListener, DataListener {
                                     Spinner paymentView,
                                     Spinner billingView,
                                     Spinner shippingView,
+                                    Button manageButton,
                                     AutofillEntries entries) {
         ThreadUtils.assertOnUiThread();
 
@@ -151,6 +154,15 @@ public class AutofillRequestHandler implements AutofillListener, DataListener {
         // "Use billing address" is prepended to the shipping address list, so adjust the index by 1.
         // -1 means to use the billing address, and our first view (index 0) is the "Use Billing Address" view.
         shippingView.setSelection(entries.shippingIndex + 1);
+
+        manageButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View buttonView) {
+                Intent settingsIntent = new Intent(activity, GeckoPreferences.class);
+                settingsIntent.putExtra(GeckoPreferences.INTENT_EXTRA_RESOURCES, "preferences_autofill");
+                activity.startActivity(settingsIntent);
+            }
+        });
     }
 
     public void destroy() {

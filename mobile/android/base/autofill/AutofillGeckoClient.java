@@ -161,7 +161,6 @@ public class AutofillGeckoClient {
     private static JSONObject getPaymentJSON(PaymentAutofillEntry paymentEntry) throws JSONException {
         final JSONObject entry = new JSONObject();
         entry.put("cc-name", paymentEntry.name);
-        entry.put("cc-type", paymentEntry.type);
         entry.put("cc-number", paymentEntry.num);
         entry.put("cc-csc", paymentEntry.csc);
         entry.put("cc-exp-month", paymentEntry.expMonth);
@@ -318,7 +317,6 @@ public class AutofillGeckoClient {
                     entry.getString("guid"),
                     values.getString("cc-name"),
                     values.getString("cc-number"),
-                    values.getString("cc-type"),
                     values.getString("cc-exp-month"),
                     values.getString("cc-exp-year"),
                     values.getString("cc-csc"));

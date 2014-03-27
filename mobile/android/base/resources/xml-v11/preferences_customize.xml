@@ -46,5 +46,15 @@
                    android:entryValues="@array/pref_update_autodownload_values"
                    android:persistent="false" />
 
+   <PreferenceScreen android:title="@string/pref_category_autofill" >
+       <intent android:action="android.intent.action.VIEW"
+               android:targetPackage="@string/android_package_name"
+               android:targetClass="org.mozilla.gecko.preferences.GeckoPreferences" >
+           <extra
+               android:name="resource"
+               android:value="preferences_autofill" />
+       </intent>
+   </PreferenceScreen>
+
 </PreferenceScreen>
 
