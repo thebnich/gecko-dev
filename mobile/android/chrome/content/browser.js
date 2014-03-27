@@ -20,6 +20,7 @@ Cu.import('resource://gre/modules/Payment.jsm');
 Cu.import("resource://gre/modules/NotificationDB.jsm");
 Cu.import("resource://gre/modules/SpatialNavigation.jsm");
 Cu.import("resource://gre/modules/UITelemetry.jsm");
+Cu.import("resource://gre/modules/JavaRequest.jsm");
 
 #ifdef ACCESSIBILITY
 Cu.import("resource://gre/modules/accessibility/AccessFu.jsm");
@@ -72,6 +73,12 @@ XPCOMUtils.defineLazyServiceGetter(this, "uuidgen",
 
 XPCOMUtils.defineLazyModuleGetter(this, "SimpleServiceDiscovery",
                                   "resource://gre/modules/SimpleServiceDiscovery.jsm");
+
+XPCOMUtils.defineLazyModuleGetter(this, "AutofillProvider",
+                                  "resource://gre/modules/AutofillProvider.jsm");
+
+XPCOMUtils.defineLazyModuleGetter(this, "AutofillValidator",
+                                  "resource://gre/modules/AutofillValidator.jsm");
 
 #ifdef NIGHTLY_BUILD
 XPCOMUtils.defineLazyModuleGetter(this, "ShumwayUtils",
@@ -175,10 +182,6 @@ const kDoNotTrackPrefState = Object.freeze({
 
 function dump(a) {
   Services.console.logStringMessage(a);
-}
-
-function sendMessageToJava(aMessage) {
-  return Services.androidBridge.handleGeckoMessage(JSON.stringify(aMessage));
 }
 
 function doChangeMaxLineBoxWidth(aWidth) {
@@ -386,6 +389,7 @@ var BrowserApp = {
     CastingApps.init();
     Distribution.init();
     Tabs.init();
+    Autofill.init();
 #ifdef ACCESSIBILITY
     AccessFu.attach(window);
 #endif
@@ -8487,6 +8491,42 @@ HTMLContextMenuItem.prototype = Object.create(ContextMenuItem.prototype, {
     }
   },
 });
+
+let Autofill = {
+  init: function () {
+    JavaRequest.addListener(this, "Autofill:Get");
+    JavaRequest.addListener(this, "Autofill:Validate");
+    Services.obs.addObserver(this, "Autofill:Edit", false);
+  },
+
+  uninit: function () {
+    JavaRequest.removeListener(this, "Autofill:Get");
+    JavaRequest.removeListener(this, "Autofill:Validate");
+    Services.obs.removeObserver(this, "Autofill:Edit");
+  },
+
+  onRequest: function (request, data, sendResponse) {
+    switch (request) {
+      case "Autofill:Get":
+        AutofillProvider.getAll(sendResponse);
+        break;
+
+      case "Autofill:Validate":
+        let result;
+        if ("payment" in data) {
+          result = AutofillValidator.validatePayment(data.payment);
+        } else if ("address" in data) {
+          result = AutofillValidator.validateAddress(data.address);
+        }
+        sendResponse(result);
+        break;
+    }
+  },
+
+  observe: function (subject, topic, data) {
+    AutofillProvider.update(JSON.parse(data));
+  }
+};
 
 /**
  * CID of Downloads.jsm's implementation of nsITransfer.
