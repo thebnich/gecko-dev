@@ -34,7 +34,6 @@ public class PaymentAdapter extends ArrayAdapter<PaymentAutofillEntry> {
         final PaymentAutofillEntry entry = getItem(position);
         ((TextView) group.findViewById(R.id.ccName)).setText(entry.name);
         ((TextView) group.findViewById(R.id.ccNumber)).setText(entry.num);
-        ((TextView) group.findViewById(R.id.ccType)).setText(entry.type);
 
         return group;
     }

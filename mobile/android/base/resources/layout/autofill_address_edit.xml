@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+
+<!-- BRN: localize -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:gecko="http://schemas.android.com/apk/res-auto"
+              android:layout_width="fill_parent"
+              android:layout_height="wrap_content"
+              android:orientation="vertical">
+
+    <org.mozilla.gecko.autofill.AutofillEditText
+        android:id="@+id/name"
+        gecko:autofillField="name"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:singleLine="true"
+        android:hint="Name" />
+
+    <org.mozilla.gecko.autofill.AutofillEditText
+        android:id="@+id/addressLine1"
+        gecko:autofillField="address-line1"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:singleLine="true"
+        android:hint="Address line 1" />
+
+    <org.mozilla.gecko.autofill.AutofillEditText
+        android:id="@+id/addressLine2"
+        gecko:autofillField="address-line2"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:singleLine="true"
+        android:hint="Address line 2" />
+
+    <org.mozilla.gecko.autofill.AutofillEditText
+        android:id="@+id/locality"
+        gecko:autofillField="locality"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:singleLine="true"
+        android:hint="City" />
+
+    <LinearLayout android:orientation="horizontal"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content">
+
+        <org.mozilla.gecko.autofill.AutofillEditText
+            android:id="@+id/region"
+            gecko:autofillField="region"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:singleLine="true"
+            android:hint="State" />
+
+        <org.mozilla.gecko.autofill.AutofillEditText
+            android:id="@+id/postalCode"
+            gecko:autofillField="postal-code"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:singleLine="true"
+            android:inputType="number"
+            android:hint="Zip code" />
+
+    </LinearLayout>
+
+    <org.mozilla.gecko.autofill.AutofillEditText
+        android:id="@+id/country"
+        gecko:autofillField="country"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:singleLine="true"
+        android:hint="Country" />
+
+    <org.mozilla.gecko.autofill.AutofillEditText
+        android:id="@+id/tel"
+        gecko:autofillField="tel"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:singleLine="true"
+        android:inputType="number"
+        android:hint="Phone" />
+
+    <org.mozilla.gecko.autofill.AutofillEditText
+        android:id="@+id/email"
+        gecko:autofillField="email"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:singleLine="true"
+        android:hint="Email" />
+
+</LinearLayout>

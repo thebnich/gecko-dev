@@ -127,6 +127,8 @@
   <string name="pref_home_updates_enabled">&pref_home_updates_enabled;</string>
   <string name="pref_home_updates_wifi">&pref_home_updates_wifi;</string>
 
+  <string name="pref_category_autofill">&pref_category_autofill;</string>
+
   <string name="pref_header_customize">&pref_header_customize;</string>
   <string name="pref_header_display">&pref_header_display;</string>
   <string name="pref_header_privacy_short">&pref_header_privacy_short;</string>
