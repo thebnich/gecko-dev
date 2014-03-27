@@ -13,6 +13,7 @@ XPIDL_MODULE = 'MobileComponents'
 EXTRA_COMPONENTS += [
     'ActivitiesGlue.js',
     'AddonUpdateService.js',
+    'AutofillUIGlue.js',
     'BlocklistPrompt.js',
     'ColorPicker.js',
     'ContentDispatchChooser.js',
