@@ -27,6 +27,7 @@
 #include "nsAutoPtr.h"
 #include "nsTArray.h"
 #include "nsIMutableArray.h"
+#include "nsIAutofillController.h"
 
 // form submission
 #include "nsIFormSubmitObserver.h"
@@ -297,6 +298,17 @@ HTMLFormElement::CheckValidity(bool* retVal)
 {
   *retVal = CheckValidity();
   return NS_OK;
+}
+
+NS_IMETHODIMP
+HTMLFormElement::RequestAutocomplete()
+{
+  nsCOMPtr<nsIAutofillController> controller(do_GetService("@mozilla.org/autofill-controller;1"));
+  if (!controller) {
+    return NS_ERROR_FAILURE;
+  }
+
+  return controller->RequestAutocomplete(this);
 }
 
 bool

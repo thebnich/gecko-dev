@@ -410,6 +410,8 @@ public:
 
   js::ExpandoAndGeneration mExpandoAndGeneration;
 
+  nsresult RequestAutocomplete();
+
 protected:
   virtual JSObject* WrapNode(JSContext* aCx) MOZ_OVERRIDE;
 

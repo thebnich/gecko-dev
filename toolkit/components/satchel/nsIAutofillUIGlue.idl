@@ -1,0 +1,46 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+#include "nsISupports.idl"
+
+[scriptable, uuid(a0e6a15c-78ed-43a5-8cde-67c649234d29)]
+interface nsIAutofillUIGlueCallback : nsISupports
+{
+    /*
+     * BRN: Implement "temporary" type for one-off submissions
+     *
+     * Submission JSON fields:
+     *   payment: Object containing the below properties.
+     *     type: "saved" OR "temporary"
+     *       If type is "saved", guid must be provided.
+     *       If type is "temporary", entry must be provided.
+     *     guid: GUID of entry; used only if type is "saved".
+     *     entry: Object containing all fields to use for submission.
+     *            Used only if type is "temporary".
+     *   billing: Object containing the below properties.
+     *     type: "saved" OR "temporary"
+     *       If type is "saved", the guid must be provided.
+     *       If type is "temporary", entry must be provided.
+     *     guid: GUID of entry; used only if type is "saved".
+     *     entry: Object containing all fields to use for submission.
+     *            Used only if type is "temporary".
+     *   shipping: Object containing the below properties.
+     *     type: "saved" OR "temporary" OR "sameAsBilling"
+     *       If type is "saved", the guid must be provided.
+     *       If type is "temporary", entry must be provided.
+     *       If type is "sameAsBilling", the billing details will be used for shipping.
+     *     guid: GUID of entry; used only if type is "saved".
+     *     entry: Object containing all fields to use for submission.
+     *            Used only if type is "temporary".
+     */
+    void submit(in jsval data);
+
+    void cancel();
+};
+
+[scriptable, uuid(2e5eddef-5cde-4c79-a456-d6ce1c33e591)]
+interface nsIAutofillUIGlue : nsISupports
+{
+    void onRequestAutocomplete(in nsIAutofillUIGlueCallback callback);
+};
