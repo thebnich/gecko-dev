@@ -8,6 +8,7 @@ package org.mozilla.gecko.preferences;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.mozilla.gecko.AppConstants;
 import org.mozilla.gecko.DataReportingNotification;
@@ -20,6 +21,7 @@ import org.mozilla.gecko.GeckoProfile;
 import org.mozilla.gecko.GeckoSharedPrefs;
 import org.mozilla.gecko.PrefsHelper;
 import org.mozilla.gecko.R;
+import org.mozilla.gecko.autofill.AutofillEntries;
 import org.mozilla.gecko.background.announcements.AnnouncementsConstants;
 import org.mozilla.gecko.background.common.GlobalConstants;
 import org.mozilla.gecko.background.healthreport.HealthReportConstants;
@@ -76,6 +78,8 @@ public class GeckoPreferences
     private boolean mInitialized = false;
     private int mPrefsRequestId = 0;
     private PanelsPreferenceCategory mPanelsPreferenceCategory;
+
+    private AutofillEntries mAutofillEntries;
 
     // These match keys in resources/xml*/preferences*.xml
     private static final String PREFS_SEARCH_RESTORE_DEFAULTS = NON_PREF_PREFIX + "search.restore_defaults";
