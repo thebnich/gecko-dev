@@ -5,8 +5,9 @@
 
 const { classes: Cc, interfaces: Ci, utils: Cu } = Components;
 
-Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource://gre/modules/AutofillContract.jsm");
+Cu.import("resource://gre/modules/Services.jsm");
+Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 
 XPCOMUtils.defineLazyServiceGetter(this, "AutofillUIGlue",
                                    "@mozilla.org/autofill-ui-glue;1",
@@ -178,6 +179,18 @@ AutofillController.prototype = {
       Cu.reportError("requestAutocomplete called on element with no window");
       return;
     }
+
+    // Need to check SSL state if page is requesting cc- fields
+
+    // Why does ui.SSLStatus always return null here?
+    // Services.console.logStringMessage("BRN: about to get webNav");
+    // let webNav = win.QueryInterface(Components.interfaces.nsIInterfaceRequestor).getInterface(Components.interfaces.nsIWebNavigation);
+    // Services.console.logStringMessage("BRN: about to get docshell");
+    // let docShell = webNav.QueryInterface(Components.interfaces.nsIDocShell);
+    // Services.console.logStringMessage("BRN: about to get security UI");
+    // let ui = docShell.securityUI.QueryInterface(Components.interfaces.nsISSLStatusProvider);
+    // Services.console.logStringMessage("BRN: about to query status");
+    // ui.SSLStatus
 
     if (this._isActive || aForm.autocomplete === "off") {
       let evt = new win.AutocompleteErrorEvent("autocompleteerror", { bubbles: true, reason: "disabled" });
