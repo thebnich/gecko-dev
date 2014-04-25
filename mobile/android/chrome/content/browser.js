@@ -8508,7 +8508,7 @@ let Autofill = {
   onRequest: function (request, data, sendResponse) {
     switch (request) {
       case "Autofill:Get":
-        AutofillProvider.getAll(sendResponse);
+        AutofillProvider.getDB(sendResponse);
         break;
 
       case "Autofill:Validate":
@@ -8524,6 +8524,7 @@ let Autofill = {
   },
 
   observe: function (subject, topic, data) {
+    // Autofill:Edit
     AutofillProvider.update(JSON.parse(data));
   }
 };
