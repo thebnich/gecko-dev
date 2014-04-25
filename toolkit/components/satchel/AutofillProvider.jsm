@@ -8,6 +8,10 @@ this.EXPORTED_SYMBOLS = ["AutofillProvider"];
 const { classes: Cc, interfaces: Ci, utils: Cu } = Components;
 
 Cu.import("resource://gre/modules/AutofillValidator.jsm");
+Cu.import("resource://gre/modules/Services.jsm");
+Cu.import("resource://gre/modules/XPCOMUtils.jsm");
+
+XPCOMUtils.defineLazyModuleGetter(this, "OS", "resource://gre/modules/osfile.jsm");
 
 // BRN: Dummy values used until storage is implemented
 var dummyDB = {
@@ -23,6 +27,8 @@ var dummyDB = {
     entries: []
   }
 };
+
+const FILENAME = "autofill.json";
 
 let AutofillProvider = {
   _cachedData: null,
@@ -60,8 +66,8 @@ let AutofillProvider = {
       throw "Validation failed: " + JSON.stringify(validation.fields);
     }
 
-    this.getAll(function (cache) {
-      let entry = getEntryFromGuid(cache[newEntry.type], newEntry.guid);
+    this.getDB(function (db) {
+      let entry = getEntryFromGuid(db[newEntry.type], newEntry.guid);
       let add = false;
       if (!entry) {
         // Non-existent entry; create a new one.
@@ -77,11 +83,11 @@ let AutofillProvider = {
       entry.data = newEntry.data;
 
       if (add) {
-        cache[newEntry.type].entries.push(entry);
+        db[newEntry.type].entries.push(entry);
       }
 
       // Write the in-memory cache to disk.
-      this._writeCache(cache);
+      this._writeDB(db);
     }.bind(this));
   },
 
@@ -93,30 +99,69 @@ let AutofillProvider = {
    * should be the default selection.
    */
   saveSelections: function (guids) {
-    this.getAll(function (data) {
+    this.getDB(function (db) {
       if ("payment" in guids) {
-        data.payment.paymentGuid = guids.payment;
+        db.payment.paymentGuid = guids.payment;
       }
       if ("billing" in guids) {
-        data.address.billingGuid = guids.billing;
+        db.address.billingGuid = guids.billing;
       }
       if ("shipping" in guids) {
-        data.address.shippingGuid = guids.shipping;
+        db.address.shippingGuid = guids.shipping;
       }
-      this._writeData(data);
+      this._writeDB(db);
     }.bind(this));
   },
 
-  _writeData: function (data) {
-    // BRN: Save data to JSON on disk.
+  // BRN: todo
+  _makeGuid: function () {
+    return null;
   },
 
-  getAll: function (callback) {
-    if (!this._cachedData) {
-      // BRN: Pull user and payment info from database
-      this._cachedData = dummyDB;
+  _createDB: function () {
+    let now = Date.now();
+    //this._cachedData = {
+    //  address: {
+    //    mtime: now,
+    //    billingGuid: this._makeGuid(),
+    //    shippingGuid: null, // null = use billing
+    //    entries: []
+    //  },
+
+    //  payment: {
+    //    mtime: now,
+    //    paymentGuid: this._makeGuid(),
+    //    entries: []
+    //  }
+    //};
+    this._writeDB(dummyDB);
+    return dummyDB;
+  },
+
+  _writeDB: function (db) {
+    let encoder = new TextEncoder();
+    let array = encoder.encode(JSON.stringify(db));
+    OS.File.writeAtomic(FILENAME, array, { tmpPath: FILENAME + ".tmp" });
+  },
+
+  getDB: function (callback) {
+    if (this._cachedData) {
+      callback(this._cachedData);
+      return;
     }
 
-    callback(this._cachedData);
+    OS.File.read(FILENAME).then(function (array) {
+      let decoder = new TextDecoder();
+      let str = decoder.decode(array);
+      try {
+        this._cachedData = JSON.parse(str);
+      } catch (e) {
+        this._cachedData = this._createDB();
+      }
+      callback(this._cachedData);
+    }.bind(this), function () {
+      this._cachedData = this._createDB();
+      callback(this._cachedData);
+    }.bind(this));
   }
 };
