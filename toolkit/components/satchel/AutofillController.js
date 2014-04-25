@@ -79,7 +79,7 @@ AutofillController.prototype = {
       return null;
     }
 
-    AutofillProvider.getAll(function (entries) {
+    AutofillProvider.getDB(function (entries) {
       let selected = {};
       let guids = {};
 
