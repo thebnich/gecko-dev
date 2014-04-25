@@ -44,6 +44,7 @@ EXTRA_JS_MODULES += [
     'AutofillContract.jsm',
     'AutofillProvider.jsm',
     'AutofillValidator.jsm',
+    'InputValidator.jsm',
     'nsFormAutoCompleteResult.jsm',
 ]
 
