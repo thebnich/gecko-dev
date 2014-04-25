@@ -6,7 +6,6 @@ package org.mozilla.gecko.autofill;
 public class PaymentAutofillEntry extends AutofillEntry {
     public String name;
     public String num;
-    public String type;
     public String expMonth;
     public String expYear;
     public String csc;
@@ -15,11 +14,10 @@ public class PaymentAutofillEntry extends AutofillEntry {
         super(guid);
     }
 
-    public PaymentAutofillEntry(String guid, String name, String num, String type, String expMonth, String expYear, String csc) {
+    public PaymentAutofillEntry(String guid, String name, String num, String expMonth, String expYear, String csc) {
         super(guid);
         this.name = name;
         this.num = num;
-        this.type = type;
         this.expMonth = expMonth;
         this.expYear = expYear;
         this.csc = csc;

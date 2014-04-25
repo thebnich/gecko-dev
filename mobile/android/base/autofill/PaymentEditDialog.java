@@ -8,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.TextView;
 
 public class PaymentEditDialog extends EditDialog<PaymentAutofillEntry> {
     private final Context mContext;
@@ -26,7 +27,6 @@ public class PaymentEditDialog extends EditDialog<PaymentAutofillEntry> {
         ((EditText) view.findViewById(R.id.ccExpMonth)).setText(entry.expMonth);
         ((EditText) view.findViewById(R.id.ccExpYear)).setText(entry.expYear);
         ((EditText) view.findViewById(R.id.ccCsc)).setText(entry.csc);
-        ((EditText) view.findViewById(R.id.ccType)).setText(entry.type);
 
         return view;
     }
@@ -42,7 +42,6 @@ public class PaymentEditDialog extends EditDialog<PaymentAutofillEntry> {
         entry.expMonth = ((EditText) view.findViewById(R.id.ccExpMonth)).getText().toString();
         entry.expYear = ((EditText) view.findViewById(R.id.ccExpYear)).getText().toString();
         entry.csc = ((EditText) view.findViewById(R.id.ccCsc)).getText().toString();
-        entry.type = ((EditText) view.findViewById(R.id.ccType)).getText().toString();
     }
 
     @Override
