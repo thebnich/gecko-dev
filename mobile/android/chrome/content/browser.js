@@ -79,6 +79,9 @@ XPCOMUtils.defineLazyModuleGetter(this, "AutofillProvider",
 XPCOMUtils.defineLazyModuleGetter(this, "AutofillValidator",
                                   "resource://gre/modules/AutofillValidator.jsm");
 
+XPCOMUtils.defineLazyModuleGetter(this, "InputValidator",
+                                  "resource://gre/modules/InputValidator.jsm");
+
 #ifdef NIGHTLY_BUILD
 XPCOMUtils.defineLazyModuleGetter(this, "ShumwayUtils",
                                   "resource://shumway/ShumwayUtils.jsm");
@@ -8400,12 +8403,14 @@ HTMLContextMenuItem.prototype = Object.create(ContextMenuItem.prototype, {
 let Autofill = {
   init: function () {
     JavaRequest.addListener(this, "Autofill:Get");
+    JavaRequest.addListener(this, "Autofill:GetCardType");
     JavaRequest.addListener(this, "Autofill:Validate");
     Services.obs.addObserver(this, "Autofill:Edit", false);
   },
 
   uninit: function () {
     JavaRequest.removeListener(this, "Autofill:Get");
+    JavaRequest.removeListener(this, "Autofill:GetCardType");
     JavaRequest.removeListener(this, "Autofill:Validate");
     Services.obs.removeObserver(this, "Autofill:Edit");
   },
@@ -8424,6 +8429,10 @@ let Autofill = {
           result = AutofillValidator.validateAddress(data.address);
         }
         sendResponse(result);
+        break;
+
+      case "Autofill:GetCardType":
+        sendResponse({ type: InputValidator.getCreditCardType(data) });
         break;
     }
   },

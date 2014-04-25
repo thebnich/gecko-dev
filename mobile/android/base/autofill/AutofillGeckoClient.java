@@ -58,6 +58,13 @@ public class AutofillGeckoClient {
         void onData(AutofillEntries entries);
     }
 
+    /**
+     * All callbacks are executed on the UI thread.
+     */
+    public interface CardTypeListener {
+        void onCardType(String cardType);
+    }
+
     static {
         EventDispatcher.getInstance().registerGeckoThreadListener(new NativeEventListener() {
             @Override
@@ -356,5 +363,24 @@ public class AutofillGeckoClient {
                 autofillEntries.shippingIndex = i;
             }
         }
+    }
+
+    public static void getCreditCardType(String card, final CardTypeListener listener) {
+        GeckoAppShell.sendRequestToGecko(new GeckoRequest("Autofill:GetCardType", card) {
+            @Override
+            public void onResponse(final JSONObject response) {
+                ThreadUtils.postToUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            final String cardType = response.isNull("type") ? null : response.getString("type");
+                            listener.onCardType(cardType);
+                        } catch (JSONException e) {
+                            throw new AutofillException(e);
+                        }
+                    }
+                });
+            }
+        });
     }
 }
