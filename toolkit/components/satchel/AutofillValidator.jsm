@@ -7,7 +7,42 @@ this.EXPORTED_SYMBOLS = ["AutofillValidator"];
 
 const { classes: Cc, interfaces: Ci, utils: Cu } = Components;
 
-Cu.import("resource://gre/modules/AutofillContract.jsm");
+Cu.import("resource://gre/modules/InputValidator.jsm");
+
+
+let nonEmptyValidator = function (value) {
+  return value.replace(/^\s+|\s+$/g, '') !== "";
+};
+
+let monthValidator = function (value) {
+  let num = parseInt(value);
+  return 1 <= num && num <= 12;
+}
+
+let positiveIntValidator = function (value) {
+  let num = parseInt(value);
+  return num > 0;
+}
+
+let addressAutocompleteFields = {
+  "name": nonEmptyValidator,
+  "tel": nonEmptyValidator, // BRN: add phone number validator
+  "email": InputValidator.validateEmail.bind(InputValidator),
+  "address-line1": nonEmptyValidator,
+  "postal-code": nonEmptyValidator,
+  "locality": nonEmptyValidator,
+  "region": nonEmptyValidator,
+  "country": nonEmptyValidator,
+};
+
+let paymentAutocompleteFields = {
+  "cc-name": nonEmptyValidator,
+  "cc-number": InputValidator.validateCreditCard.bind(InputValidator),
+  "cc-exp-month": monthValidator,
+  "cc-exp-year": positiveIntValidator,
+  "cc-csc": positiveIntValidator,
+};
+
 
 function Validator() {}
 
@@ -24,26 +59,27 @@ Validator.prototype.validate = function (data) {
     fields: {}
   };
 
+  // BRN: localization
   for (let field in this.fieldList) {
-    if (this.fieldList[field] && !data[field]) {
+    if (!data[field]) {
       result.valid = false;
-      // BRN: localization
       result.fields[field] = "Missing required field";
+    } else if (!this.fieldList[field](data[field])) {
+      result.valid = false;
+      result.fields[field] = "Invalid entry";
     }
   }
 
   return result;
 };
 
-// BRN: add validation for all payment fields
 function PaymentValidator() {}
 PaymentValidator.prototype = Object.create(Validator.prototype);
-PaymentValidator.prototype.fieldList = AutofillContract.paymentAutocompleteFields;
+PaymentValidator.prototype.fieldList = paymentAutocompleteFields;
 
-// BRN: add validation for all address fields
 function AddressValidator() {}
 AddressValidator.prototype = Object.create(Validator.prototype);
-AddressValidator.prototype.fieldList = AutofillContract.addressAutocompleteFields;
+AddressValidator.prototype.fieldList = addressAutocompleteFields;
 
 
 let paymentValidator = new PaymentValidator();
