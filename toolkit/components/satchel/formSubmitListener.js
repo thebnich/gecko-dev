@@ -11,6 +11,9 @@ Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource://gre/modules/PrivateBrowsingUtils.jsm");
 
+XPCOMUtils.defineLazyModuleGetter(this, "InputValidator",
+                                  "resource://gre/modules/InputValidator.jsm");
+
 var satchelFormListener = {
     QueryInterface : XPCOMUtils.generateQI([Ci.nsIFormSubmitObserver,
                                             Ci.nsIDOMEventListener,
@@ -34,31 +37,12 @@ var satchelFormListener = {
         this.saveHttpsForms = Services.prefs.getBoolPref("browser.formfill.saveHttpsForms");
     },
 
-    // Implements the Luhn checksum algorithm as described at
-    // http://wikipedia.org/wiki/Luhn_algorithm
+
     isValidCCNumber : function (ccNumber) {
         // Remove dashes and whitespace
         ccNumber = ccNumber.replace(/[\-\s]/g, '');
 
-        let len = ccNumber.length;
-        if (len != 9 && len != 15 && len != 16)
-            return false;
-
-        if (!/^\d+$/.test(ccNumber))
-            return false;
-
-        let total = 0;
-        for (let i = 0; i < len; i++) {
-            let ch = parseInt(ccNumber[len - i - 1]);
-            if (i % 2 == 1) {
-                // Double it, add digits together if > 10
-                ch *= 2;
-                if (ch > 9)
-                    ch -= 9;
-            }
-            total += ch;
-        }
-        return total % 10 == 0;
+        return InputValidator.validateCreditCard(ccNumber);
     },
 
     log : function (message) {
