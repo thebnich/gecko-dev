@@ -5,8 +5,10 @@
 
 const { classes: Cc, interfaces: Ci, utils: Cu } = Components;
 
-Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource://gre/modules/AutofillContract.jsm");
+Cu.import("resource://gre/modules/Promise.jsm");
+Cu.import("resource://gre/modules/Task.jsm");
+Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 
 XPCOMUtils.defineLazyServiceGetter(this, "AutofillUIGlue",
                                    "@mozilla.org/autofill-ui-glue;1",
@@ -25,7 +27,6 @@ function AutofillController() {}
 AutofillController.prototype = {
   _form: null,
   _win: null,
-  _isActive: false,
 
   _parseAutocomplete: function (attr) {
     function attrGenerator(attr) {
@@ -154,47 +155,34 @@ AutofillController.prototype = {
       // Fire event on the form to indicate success.
       let evt = new this._win.Event("autocomplete", { bubbles: true });
       this._form.dispatchEvent(evt);
-
-      this._finish();
     }.bind(this));
-  },
-
-  _finish: function () {
-    this._form = null;
-    this._win = null;
-    this._isActive = false;
   },
 
   _cancel: function () {
     let evt = new this._win.AutocompleteErrorEvent("autocompleteerror", { bubbles: true, reason: "cancel" });
     this._form.dispatchEvent(evt);
-    this._finish();
   },
 
-  requestAutocomplete: function (aForm) {
-    let win = aForm.ownerDocument.defaultView;
+  requestAutocomplete: function (form) {
+    let win = form.ownerDocument.defaultView;
 
-    if (!win) {
-      Cu.reportError("requestAutocomplete called on element with no window");
+    if (form.autocomplete === "off") {
+      Task.spawn(function () {
+        let evt = new win.AutocompleteErrorEvent("autocompleteerror", { bubbles: true, reason: "disabled" });
+        form.dispatchEvent(evt);
+      });
       return;
     }
 
-    if (this._isActive || aForm.autocomplete === "off") {
-      let evt = new win.AutocompleteErrorEvent("autocompleteerror", { bubbles: true, reason: "disabled" });
-      aForm.dispatchEvent(evt);
-      return;
-    }
-
-    // isActive flag is set as specified by http://wiki.whatwg.org/wiki/RequestAutocomplete
-    // BRN: how will we handle isActive with multiple tabs?
-    this._isActive = true;
     this._win = win;
-    this._form = aForm;
+    this._form = form;
 
-    AutofillUIGlue.onRequestAutocomplete({
-      submit: this._submit.bind(this),
-      cancel: this._cancel.bind(this)
-    });
+    new Promise((resolve, reject) => AutofillUIGlue.onRequestAutocomplete({ submit: resolve, cancel: reject }))
+      .then(this._submit.bind(this), this._cancel.bind(this))
+      .then(function () {
+        this._win = null;
+        this._form = null;
+      }.bind(this));
   },
 
   classID: Components.ID("{ed9c2c3c-3f86-4ae5-8e31-10f71b0f19e6}"),

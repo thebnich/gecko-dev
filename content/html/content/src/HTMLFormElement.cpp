@@ -10,6 +10,7 @@
 #include "mozilla/EventDispatcher.h"
 #include "mozilla/EventStateManager.h"
 #include "mozilla/EventStates.h"
+#include "mozilla/dom/AutocompleteErrorEvent.h"
 #include "mozilla/dom/HTMLFormControlsCollection.h"
 #include "mozilla/dom/HTMLFormElementBinding.h"
 #include "mozilla/Move.h"
@@ -305,8 +306,19 @@ void
 HTMLFormElement::RequestAutocomplete()
 {
   nsCOMPtr<nsIAutofillController> controller(do_GetService("@mozilla.org/autofill-controller;1"));
-  if (controller) {
+  nsCOMPtr<nsPIDOMWindow> window = OwnerDoc()->GetWindow();
+
+  if (controller && window && EventStateManager::IsHandlingUserInput()) {
     controller->RequestAutocomplete(this);
+  } else {
+    AutocompleteErrorEventInit init;
+    init.mBubbles = true;
+    init.mCancelable = false;
+    init.mReason = AutoCompleteErrorReason::Disabled;
+
+    nsRefPtr<AutocompleteErrorEvent> event =
+      AutocompleteErrorEvent::Constructor(this, NS_LITERAL_STRING("autocompleteerror"), init);
+    (new AsyncEventDispatcher(this, event))->PostDOMEvent();
   }
 }
 
