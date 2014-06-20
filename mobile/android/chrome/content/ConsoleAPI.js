@@ -7,6 +7,8 @@ var ConsoleAPI = {
   observe: function observe(aMessage, aTopic, aData) {
     aMessage = aMessage.wrappedJSObject;
 
+    Services.console.logStringMessage("BRN: " + JSON.stringify(aMessage));
+
     let mappedArguments = Array.map(aMessage.arguments, this.formatResult, this);
     let joinedArguments = Array.join(mappedArguments, " ");
 
