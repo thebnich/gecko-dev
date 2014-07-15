@@ -9,6 +9,7 @@ const Cr = Components.results;
 
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource://gre/modules/Services.jsm");
+Cu.import("resource:///modules/sessionstore/FrameTree.jsm", this);
 
 #ifdef MOZ_CRASHREPORTER
 XPCOMUtils.defineLazyServiceGetter(this, "CrashReporter",
@@ -18,6 +19,9 @@ XPCOMUtils.defineLazyServiceGetter(this, "CrashReporter",
 XPCOMUtils.defineLazyModuleGetter(this, "Task", "resource://gre/modules/Task.jsm");
 XPCOMUtils.defineLazyModuleGetter(this, "OS", "resource://gre/modules/osfile.jsm");
 XPCOMUtils.defineLazyModuleGetter(this, "sendMessageToJava", "resource://gre/modules/Messaging.jsm");
+XPCOMUtils.defineLazyModuleGetter(this, "FormData", "resource://gre/modules/FormData.jsm");
+
+let gFrameTree = new FrameTree(this);
 
 function dump(a) {
   Services.console.logStringMessage(a);
@@ -64,6 +68,8 @@ SessionStore.prototype = {
 
     this._interval = Services.prefs.getIntPref("browser.sessionstore.interval");
     this._maxTabsUndo = Services.prefs.getIntPref("browser.sessionstore.max_tabs_undo");
+
+    FormDataListener.init();
   },
 
   _clearDisk: function ss_clearDisk() {
@@ -997,6 +1003,54 @@ SessionStore.prototype = {
       Cu.reportError("SessionStore: " + e);
       notifyObservers("fail");
     }
+  }
+};
+
+/**
+ * Listens for changes to input elements. Whenever the value of an input
+ * element changes we will re-collect data for the current frame tree and send
+ * a message to the parent process.
+ *
+ * Causes a SessionStore:update message to be sent that contains the form data
+ * for all reachable frames.
+ *
+ * Example:
+ *   {
+ *     formdata: {url: "http://mozilla.org/", id: {input_id: "input value"}},
+ *     children: [
+ *       null,
+ *       {url: "http://sub.mozilla.org/", id: {input_id: "input value 2"}}
+ *     ]
+ *   }
+ */
+let FormDataListener = {
+  init: function () {
+    dump("BRN: FrameTree - FormDataListener");
+    addEventListener("input", this, true);
+    addEventListener("change", this, true);
+    gFrameTree.addObserver(this);
+  },
+
+  handleEvent: function (event) {
+    dump("BRN: FrameTree - handleEvent");
+    let frame = event.target &&
+                event.target.ownerDocument &&
+                event.target.ownerDocument.defaultView;
+
+    // Don't collect form data for frames created at or after the load event
+    // as SessionStore can't restore form data for those.
+    if (frame && gFrameTree.contains(frame)) {
+      MessageQueue.push("formdata", () => this.collect());
+    }
+  },
+
+  onFrameTreeReset: function () {
+    MessageQueue.push("formdata", () => null);
+  },
+
+  collect: function () {
+    dump("BRN: FrameTree - collect");
+    return gFrameTree.map(FormData.collect);
   }
 };
 
