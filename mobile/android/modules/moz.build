@@ -22,6 +22,7 @@ EXTRA_JS_MODULES += [
     'OrderedBroadcast.jsm',
     'PageActions.jsm',
     'Prompt.jsm',
+    'RequestAutocompleteUI.jsm',
     'Sanitizer.jsm',
     'SharedPreferences.jsm',
     'SimpleServiceDiscovery.jsm',
