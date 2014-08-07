@@ -1136,6 +1136,7 @@ var BrowserApp = {
         return;
 
       Services.obs.notifyObservers(null, "browser-lastwindow-close-granted", null);
+      Services.obs.notifyObservers(null, "application-background", null);
     }
 
     BrowserApp.sanitize(aClear, function() {

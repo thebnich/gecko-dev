@@ -2164,6 +2164,8 @@ public abstract class GeckoApp
     }
 
     public void doRestart(String action, String args) {
+        GeckoAppShell.sendEventToGecko(GeckoEvent.createBroadcastEvent("application-background", null));
+
         Log.d(LOGTAG, "doRestart(\"" + action + "\")");
         try {
             Intent intent = new Intent(action);
