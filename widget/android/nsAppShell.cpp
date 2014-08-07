@@ -185,6 +185,7 @@ nsAppShell::Init()
     if (obsServ) {
         obsServ->AddObserver(this, "xpcom-shutdown", false);
         obsServ->AddObserver(this, "browser-delayed-startup-finished", false);
+        obsServ->AddObserver(this, "application-background", false);
     }
 
     if (sPowerManagerService)
@@ -213,7 +214,29 @@ nsAppShell::Observe(nsISupports* aSubject,
     } else if (!strcmp(aTopic, "browser-delayed-startup-finished")) {
         NS_CreateServicesFromCategory("browser-delayed-startup-finished", nullptr,
                                       "browser-delayed-startup-finished");
+    } else if (!strcmp(aTopic, "application-background")) {
+        // If we are OOM killed with the disk cache enabled, the entire
+        // cache will be cleared (bug 105843), so shut down the cache here
+        // and re-init on foregrounding
+        if (nsCacheService::GlobalInstance()) {
+            nsCacheService::GlobalInstance()->Shutdown();
+        }
+
+        // We really want to send a notification like profile-before-change,
+        // but profile-before-change ends up shutting some things down instead
+        // of flushing data
+        nsIPrefService* prefs = Preferences::GetService();
+        if (prefs) {
+            // reset the crash loop state
+            nsCOMPtr<nsIPrefBranch> prefBranch;
+            prefs->GetBranch("browser.sessionstore.", getter_AddRefs(prefBranch));
+            if (prefBranch)
+                prefBranch->SetIntPref("recent_crashes", 0);
+
+            prefs->SavePrefFile(nullptr);
+        }
     }
+
     return NS_OK;
 }
 
@@ -328,27 +351,6 @@ nsAppShell::ProcessNextNativeEvent(bool mayWait)
 
         NS_NAMED_LITERAL_STRING(minimize, "heap-minimize");
         obsServ->NotifyObservers(nullptr, "memory-pressure", minimize.get());
-
-        // If we are OOM killed with the disk cache enabled, the entire
-        // cache will be cleared (bug 105843), so shut down the cache here
-        // and re-init on foregrounding
-        if (nsCacheService::GlobalInstance()) {
-            nsCacheService::GlobalInstance()->Shutdown();
-        }
-
-        // We really want to send a notification like profile-before-change,
-        // but profile-before-change ends up shutting some things down instead
-        // of flushing data
-        nsIPrefService* prefs = Preferences::GetService();
-        if (prefs) {
-            // reset the crash loop state
-            nsCOMPtr<nsIPrefBranch> prefBranch;
-            prefs->GetBranch("browser.sessionstore.", getter_AddRefs(prefBranch));
-            if (prefBranch)
-                prefBranch->SetIntPref("recent_crashes", 0);
-
-            prefs->SavePrefFile(nullptr);
-        }
         break;
     }
 
