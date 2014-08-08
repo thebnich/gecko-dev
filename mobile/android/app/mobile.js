@@ -170,6 +170,10 @@ pref("layout.spellcheckDefault", 0);
 pref("dom.experimental_forms", true);
 pref("dom.forms.number", true);
 
+/* requestAutocomplete */
+pref("dom.forms.autocomplete.experimental", true);
+pref("dom.forms.requestAutocomplete", true);
+
 /* extension manager and xpinstall */
 pref("xpinstall.whitelist.directRequest", false);
 pref("xpinstall.whitelist.fileRequest", false);
