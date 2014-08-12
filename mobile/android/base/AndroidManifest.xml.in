@@ -368,6 +368,23 @@
 
         </provider>
 
+#ifdef MOZ_ANDROID_SHARE_OVERLAY
+        <!-- Share overlay activity -->
+        <activity android:name="org.mozilla.gecko.overlays.ShareDialog"
+                  android:label="Send to Firefox"
+                  android:windowSoftInputMode="stateAlwaysHidden|adjustResize"
+                  android:theme="@style/ShareOverlayActivity">
+
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+        </activity>
+#endif
+
         <!--
           Ensure that passwords provider runs in its own process. (Bug 718760.)
           Process name is per-application to avoid loading CPs from multiple

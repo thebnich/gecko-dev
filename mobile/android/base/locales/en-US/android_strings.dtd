@@ -85,6 +85,11 @@
      to display browser chrome. -->
 <!ENTITY locale_system_default "System default">
 
+<!ENTITY overlay_share_bookmark_btn_label "Add to Bookmarks">
+<!ENTITY overlay_share_reading_list_btn_label "Add to Reading List">
+<!ENTITY overlay_share_send_tab_btn_label "Send tab to Firefox Sync">
+<!ENTITY overlay_share_no_url "Firefox can\'t handle a share that doesn\'t include a URL. Sorry!">
+
 <!ENTITY pref_category_search3 "Search">
 <!ENTITY pref_category_search_summary "Customize your search providers">
 <!ENTITY pref_category_display "Display">
