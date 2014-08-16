@@ -10,64 +10,32 @@ Cu.import("resource://gre/modules/Promise.jsm");
 Cu.import("resource://gre/modules/Task.jsm");
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 
-this.EXPORTED_SYMBOLS = ["sendMessageToJava", "sendRequestToJava", "RequestService"];
+this.EXPORTED_SYMBOLS = ["sendMessageToJava", "Messaging"];
 
 XPCOMUtils.defineLazyServiceGetter(this, "uuidgen",
                                    "@mozilla.org/uuid-generator;1",
                                    "nsIUUIDGenerator");
 
 function sendMessageToJava(aMessage, aCallback) {
-  if (aCallback) {
-    Cu.reportError("The callback parameter of sendMessageToJava is deprecated. Use sendRequestToJava instead.");
+  Cu.reportError("sendMessageToJava is deprecated. Use Messaging API instead.");
 
-    sendRequestToJava(aMessage)
+  if (aCallback) {
+    Messaging.sendRequestToJava(aMessage)
       .then(response => aCallback(response, null))
       .catch(response => aCallback(null, response));
   } else {
-    Services.androidBridge.handleGeckoMessage(aMessage);
+    Messaging.sendMessageToJava(aMessage);
   }
 }
 
-/**
- * Sends a message to Java, returning a promise that resolves to the response.
- */
-function sendRequestToJava(aMessage) {
-  let promise = new Promise(function (resolve, reject) {
-    let id = uuidgen.generateUUID().toString();
-    let obs = {
-      observe: function (aSubject, aTopic, aData) {
-        let data = JSON.parse(aData);
-        if (data.__guid__ != id) {
-          return;
-        }
-
-        Services.obs.removeObserver(obs, aMessage.type + ":Response");
-
-        if (data.status === "success") {
-          resolve(data.response);
-        } else {
-          reject(data.response);
-        }
-      }
-    };
-
-    aMessage.__guid__ = id;
-    Services.obs.addObserver(obs, aMessage.type + ":Response", false);
-  });
-
-  Services.androidBridge.handleGeckoMessage(aMessage);
-
-  return promise;
-}
-
-let RequestService = {
+let Messaging = {
   /**
    * Add a listener for the given message.
    *
    * Only one request listener can be registered for a given message.
    *
    * Example usage:
-   *   RequestService.addListener({
+   *   Messaging.addRequestListener({
    *     // aMessage is the message name.
    *     // aData is data sent from Java with the request.
    *     // The return value is used to respond to the request. The return
@@ -82,7 +50,7 @@ let RequestService = {
    *
    * The listener may also be a generator function, useful for performing a
    * task asynchronously. For example:
-   *   RequestService.addListener({
+   *   Messaging.addRequestListener({
    *     onRequest: function* (aMessage, aData) {
    *       yield new Promise(resolve => setTimeout(resolve, 2000));
    *       return { response: "bar" };
@@ -93,7 +61,7 @@ let RequestService = {
    *                  usage above).
    * @param aMessage  Event name that this listener should observe.
    */
-  addListener: function (aListener, aMessage) {
+  addRequestListener: function (aListener, aMessage) {
     requestHandler.addListener(aListener, aMessage);
   },
 
@@ -102,8 +70,52 @@ let RequestService = {
    *
    * @param aMessage The event to stop listening for.
    */
-  removeListener: function (aMessage) {
+  removeRequestListener: function (aMessage) {
     requestHandler.removeListener(aMessage);
+  },
+
+  /**
+   * Sends a message to Java.
+   *
+   * @param aMessage Message to send; must be an object with a "type" property
+   */
+  sendMessageToJava: function (aMessage) {
+    Services.androidBridge.handleGeckoMessage(aMessage);
+  },
+
+  /**
+   * Sends a request to Java.
+   *
+   * @param aMessage Message to send; must be an object with a "type" property
+   * @returns A promise that resolves to the response
+   */
+  sendRequestToJava: function (aMessage) {
+    let promise = new Promise(function (resolve, reject) {
+      let id = uuidgen.generateUUID().toString();
+      let obs = {
+        observe: function (aSubject, aTopic, aData) {
+          let data = JSON.parse(aData);
+          if (data.__guid__ != id) {
+            return;
+          }
+
+          Services.obs.removeObserver(obs, aMessage.type + ":Response");
+
+          if (data.status === "success") {
+            resolve(data.response);
+          } else {
+            reject(data.response);
+          }
+        }
+      };
+
+      aMessage.__guid__ = id;
+      Services.obs.addObserver(obs, aMessage.type + ":Response", false);
+    });
+
+    this.sendMessageToJava(aMessage);
+
+    return promise;
   },
 };
 
