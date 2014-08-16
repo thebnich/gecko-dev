@@ -6,10 +6,11 @@
 const { classes: Cc, interfaces: Ci, utils: Cu } = Components;
 
 Cu.import("resource://gre/modules/Services.jsm");
-Cu.import("resource://gre/modules/XPCOMUtils.jsm");
+Cu.import("resource://gre/modules/Promise.jsm");
 Cu.import("resource://gre/modules/Task.jsm");
+Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 
-this.EXPORTED_SYMBOLS = ["sendMessageToJava", "RequestService"];
+this.EXPORTED_SYMBOLS = ["sendMessageToJava", "sendRequestToJava", "RequestService"];
 
 XPCOMUtils.defineLazyServiceGetter(this, "uuidgen",
                                    "@mozilla.org/uuid-generator;1",
@@ -17,31 +18,46 @@ XPCOMUtils.defineLazyServiceGetter(this, "uuidgen",
 
 function sendMessageToJava(aMessage, aCallback) {
   if (aCallback) {
+    Cu.reportError("The callback parameter of sendMessageToJava is deprecated. Use sendRequestToJava instead.");
+
+    sendRequestToJava(aMessage)
+      .then(response => aCallback(response, null))
+      .catch(response => aCallback(null, response));
+  } else {
+    Services.androidBridge.handleGeckoMessage(aMessage);
+  }
+}
+
+/**
+ * Sends a message to Java, returning a promise that resolves to the response.
+ */
+function sendRequestToJava(aMessage) {
+  let promise = new Promise(function (resolve, reject) {
     let id = uuidgen.generateUUID().toString();
     let obs = {
-      observe: function(aSubject, aTopic, aData) {
+      observe: function (aSubject, aTopic, aData) {
         let data = JSON.parse(aData);
         if (data.__guid__ != id) {
           return;
         }
 
-        Services.obs.removeObserver(obs, aMessage.type + ":Response", false);
+        Services.obs.removeObserver(obs, aMessage.type + ":Response");
 
-        if (data.status === "cancel") {
-          // No Java-side listeners handled our callback.
-          return;
+        if (data.status === "success") {
+          resolve(data.response);
+        } else {
+          reject(data.response);
         }
-
-        aCallback(data.status === "success" ? data.response : null,
-                  data.status === "error"   ? data.response : null);
       }
-    }
+    };
 
     aMessage.__guid__ = id;
     Services.obs.addObserver(obs, aMessage.type + ":Response", false);
-  }
+  });
 
-  return Services.androidBridge.handleGeckoMessage(aMessage);
+  Services.androidBridge.handleGeckoMessage(aMessage);
+
+  return promise;
 }
 
 let RequestService = {
