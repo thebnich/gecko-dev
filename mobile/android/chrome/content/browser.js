@@ -27,7 +27,7 @@ Cu.import("resource://gre/modules/accessibility/AccessFu.jsm");
 XPCOMUtils.defineLazyModuleGetter(this, "PluralForm",
                                   "resource://gre/modules/PluralForm.jsm");
 
-XPCOMUtils.defineLazyModuleGetter(this, "sendMessageToJava",
+XPCOMUtils.defineLazyModuleGetter(this, "Messaging",
                                   "resource://gre/modules/Messaging.jsm");
 
 XPCOMUtils.defineLazyModuleGetter(this, "DebuggerServer",
@@ -189,6 +189,10 @@ let Log = Cu.import("resource://gre/modules/AndroidLog.jsm", {}).AndroidLog;
 // Define the "dump" function as a binding of the Log.d function so it specifies
 // the "debug" priority and a log tag.
 let dump = Log.d.bind(null, "Browser");
+
+// sendMessageToJava is namespaced in the Messaging module. Make it global here
+// for convenience.
+let { sendMessageToJava } = Messaging;
 
 function doChangeMaxLineBoxWidth(aWidth) {
   gReflowPending = null;
