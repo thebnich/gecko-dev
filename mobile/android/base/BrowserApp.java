@@ -17,6 +17,7 @@ import java.util.Vector;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+
 import org.mozilla.gecko.AppConstants.Versions;
 import org.mozilla.gecko.DynamicToolbar.PinReason;
 import org.mozilla.gecko.DynamicToolbar.VisibilityTransition;
@@ -58,6 +59,7 @@ import org.mozilla.gecko.prompts.Prompt;
 import org.mozilla.gecko.prompts.PromptListItem;
 import org.mozilla.gecko.sync.setup.SyncAccounts;
 import org.mozilla.gecko.tabs.TabsPanel;
+import org.mozilla.gecko.tiles.TilesRecorder;
 import org.mozilla.gecko.toolbar.AutocompleteHandler;
 import org.mozilla.gecko.toolbar.BrowserToolbar;
 import org.mozilla.gecko.toolbar.ToolbarProgressView;
@@ -241,6 +243,8 @@ public class BrowserApp extends GeckoApp
     private boolean mHideWebContentOnAnimationEnd;
 
     private final DynamicToolbar mDynamicToolbar = new DynamicToolbar();
+
+    private TilesRecorder mTilesRecorder;
 
     @Override
     public View onCreateView(final String name, final Context context, final AttributeSet attrs) {
@@ -588,6 +592,8 @@ public class BrowserApp extends GeckoApp
                 Log.e(LOGTAG, "Error initializing media manager", ex);
             }
         }
+
+        mTilesRecorder = new TilesRecorder(this);
     }
 
     private void setupSystemUITinting() {
@@ -722,6 +728,9 @@ public class BrowserApp extends GeckoApp
 
         final LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(this);
         lbm.unregisterReceiver(mOnboardingReceiver);
+
+        // The process may die any moment after an onPause, so synchronously flush recorded events to disk.
+        mTilesRecorder.flush();
     }
 
     @Override
@@ -1027,6 +1036,7 @@ public class BrowserApp extends GeckoApp
     @Override
     public void onDestroy() {
         mDynamicToolbar.destroy();
+        mTilesRecorder.destroy();
 
         if (mBrowserToolbar != null)
             mBrowserToolbar.onDestroy();

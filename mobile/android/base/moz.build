@@ -405,6 +405,8 @@ gbjar.sources += [
     'TextSelection.java',
     'TextSelectionHandle.java',
     'ThumbnailHelper.java',
+    'tiles/TilesRecorder.java',
+    'tiles/TilesSnapshot.java',
     'toolbar/ActionBarViewFlipper.java',
     'toolbar/AutocompleteHandler.java',
     'toolbar/BackButton.java',
