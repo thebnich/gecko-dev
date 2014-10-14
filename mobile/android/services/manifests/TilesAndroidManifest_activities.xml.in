@@ -1,0 +1,14 @@
+        <provider android:name="org.mozilla.gecko.background.tiles.TilesContentProvider"
+                  android:exported="false"
+                  android:authorities="@ANDROID_PACKAGE_NAME@.tiles">
+        </provider>
+
+        <!-- TilesBroadcastReceiver is a thin receiver whose purpose is to
+             start the background service in response to BOOT_COMPLETED.
+          -->
+        <receiver android:name="org.mozilla.gecko.background.tiles.TilesBroadcastReceiver" >
+            <intent-filter>
+                <!-- Startup. -->
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>

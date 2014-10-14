@@ -1,0 +1,95 @@
+//#filter substitution
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+package org.mozilla.gecko.background.tiles;
+
+import android.net.Uri;
+
+public class TilesConstants {
+  public static final String AUTHORITY = "@ANDROID_PACKAGE_NAME@.tiles";
+  public static final Uri AUTHORITY_URI = Uri.parse("content://" + AUTHORITY);
+  public static final Uri AUTHORITY_EVENTS_URI = Uri.withAppendedPath(AUTHORITY_URI, "events");
+
+  // BRN: Update these with real values.
+  public static final String USER_AGENT = "Firefox-Android-Tiles/@MOZ_APP_VERSION@ (@MOZ_APP_DISPLAYNAME@)";
+  public static final String SERVER_SPEC = "http://requestb.in/r2sjgrr2";
+  public static final int UPLOAD_INTERVAL_MSEC = 1000 * 30; // testing only
+  public static final int UPLOAD_TIMEOUT_MSEC = 1000 * 30; // 30 seconds
+
+  public static final String ACTION_UPLOAD = "@ANDROID_PACKAGE_NAME@.tiles.UPLOAD";
+
+  // Android SharedPreferences branch where global (not per-profile) uploader
+  // settings are stored.
+  public static final String PREFS_BRANCH = "background";
+  public static final String PREF_CLOCK = "tiles_clock";
+  public static final String PREF_LAST_REALTIME = "tiles_last_realtime";
+  public static final String PREF_LAST_UPLOAD_ABS_TIME = "tiles_last_upload_abs_time";
+  public static final String PREF_LAST_UPLOAD_CLOCK = "tiles_last_upload_clock";
+  public static final String PREF_LAST_UPLOAD_REALTIME = "tiles_last_upload_realtime";
+
+  public static final class EventsContract {
+    private EventsContract() {}
+
+     public static final String EVENT_VIEW = "view";
+     public static final String EVENT_CLICK = "click";
+     public static final String EVENT_PIN = "pin";
+     public static final String EVENT_UNPIN = "unpin";
+
+     /**
+      * The event being recorded.
+      * The value must be one of the EVENT_* EventsContract constants. Cannot be null.
+      */
+     public static final String COLUMN_EVENT = "event";
+
+     /**
+      * The index of the tile associated with this event.
+      * The index is relative to the array of tiles given by COLUMN_TILES. Must
+      * be null for "view" events, and non-null otherwise.
+      */
+     public static final String COLUMN_INDEX = "index";
+
+     /**
+      * The set of tiles visible for this event.
+      * The value is a stringified JSON array with the following format:
+      * [
+      *   {
+      *     id: <int> The ID if this is a suggested site; undefined otherwise.
+      *     pin: <bool> True if this is a pinned tile; undefined otherwise.
+      *     pos: <int> The index of this site, defined only if it does not match
+      *                its index in the tiles array. This will happen only if
+      *                the site is pinned and there is a gap of empty tiles.
+      *   },
+      *   ...
+      * ]
+      */
+     public static final String COLUMN_TILES = "tiles";
+
+     /**
+      * The clock ID for this event.
+      * The clock ID is managed by the tiles content provider and is
+      * incremented each time the device reboots.
+      */
+     public static final String COLUMN_CLOCK = "clock";
+
+     /**
+      * The realtime (milliseconds since boot) for this event.
+      */
+     public static final String COLUMN_REALTIME = "realtime";
+
+     /**
+      * The calculated absolute time, relative to the server time, for this event.
+      *
+      * 0 if the time cannot be calculated.
+      */
+     public static final String COLUMN_CALCTIME = "calctime";
+
+     /**
+      * The last upload absolute time, relative to the server time.
+      *
+      * 0 if tiles have never been uploaded.
+      */
+     public static final String COLUMN_MINTIME = "mintime";
+  }
+}

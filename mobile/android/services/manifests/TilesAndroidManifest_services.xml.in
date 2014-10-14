@@ -1,0 +1,7 @@
+        <service android:name="org.mozilla.gecko.background.tiles.TilesAlarmService"
+                 android:exported="false">
+        </service>
+
+        <service android:name="org.mozilla.gecko.background.tiles.TilesUploadService"
+                 android:exported="false">
+        </service>

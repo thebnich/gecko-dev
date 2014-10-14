@@ -823,6 +823,11 @@ sync_java_files = [
     'background/nativecode/NativeCrypto.java',
     'background/preferences/PreferenceFragment.java',
     'background/preferences/PreferenceManagerCompat.java',
+    'background/tiles/TilesAlarmService.java',
+    'background/tiles/TilesBroadcastReceiver.java',
+    'background/tiles/TilesContentProvider.java',
+    'background/tiles/TilesUploadException.java',
+    'background/tiles/TilesUploadService.java',
     'browserid/ASNUtils.java',
     'browserid/BrowserIDKeyPair.java',
     'browserid/DSACryptoImplementation.java',
@@ -1139,6 +1144,7 @@ sync_java_files = [
 sync_generated_java_files = [
     'org/mozilla/gecko/background/common/GlobalConstants.java',
     'org/mozilla/gecko/background/healthreport/HealthReportConstants.java',
+    'org/mozilla/gecko/background/tiles/TilesConstants.java',
     'org/mozilla/gecko/fxa/FxAccountConstants.java',
     'org/mozilla/gecko/sync/SyncConstants.java',
 ]
