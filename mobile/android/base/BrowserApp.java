@@ -49,6 +49,7 @@ import org.mozilla.gecko.home.HomePager;
 import org.mozilla.gecko.home.HomePager.OnUrlOpenInBackgroundListener;
 import org.mozilla.gecko.home.HomePager.OnUrlOpenListener;
 import org.mozilla.gecko.home.HomePanelsManager;
+import org.mozilla.gecko.home.TopSitesPanel;
 import org.mozilla.gecko.home.SearchEngine;
 import org.mozilla.gecko.menu.GeckoMenu;
 import org.mozilla.gecko.menu.GeckoMenuItem;
@@ -144,7 +145,8 @@ public class BrowserApp extends GeckoApp
                                    OnUrlOpenListener,
                                    OnUrlOpenInBackgroundListener,
                                    ActionModeCompat.Presenter,
-                                   LayoutInflater.Factory {
+                                   LayoutInflater.Factory,
+                                   TopSitesPanel.BrowserTilesRecorderProvider {
     private static final String LOGTAG = "GeckoBrowserApp";
 
     private static final int TABS_ANIMATION_DURATION = 450;
@@ -3265,5 +3267,10 @@ public class BrowserApp extends GeckoApp
                                          osLocale,
                                          appLocale,
                                          previousSession);
+    }
+
+    @Override
+    public TilesRecorder getTilesRecorder() {
+        return mTilesRecorder;
     }
 }

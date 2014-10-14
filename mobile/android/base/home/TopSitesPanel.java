@@ -15,7 +15,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.mozilla.gecko.GeckoProfile;
-import org.mozilla.gecko.GeckoSharedPrefs;
 import org.mozilla.gecko.R;
 import org.mozilla.gecko.Telemetry;
 import org.mozilla.gecko.TelemetryContract;
@@ -31,6 +30,8 @@ import org.mozilla.gecko.home.HomePager.OnUrlOpenListener;
 import org.mozilla.gecko.home.PinSiteDialog.OnSiteSelectedListener;
 import org.mozilla.gecko.home.TopSitesGridView.OnEditPinnedSiteListener;
 import org.mozilla.gecko.home.TopSitesGridView.TopSitesGridContextMenuInfo;
+import org.mozilla.gecko.tiles.TilesRecorder;
+import org.mozilla.gecko.tiles.TilesSnapshot;
 import org.mozilla.gecko.util.StringUtils;
 import org.mozilla.gecko.util.ThreadUtils;
 
@@ -99,6 +100,10 @@ public class TopSitesPanel extends HomeFragment {
     // Max number of entries shown in the grid from the cursor.
     private int mMaxGridEntries;
 
+    // Fields used for tiles metrics recording.
+    private TilesRecorder mTilesRecorder;
+    private boolean mDidRecordTilesView;
+
     // Time in ms until the Gecko thread is reset to normal priority.
     private static final long PRIORITY_RESET_TIMEOUT = 10000;
 
@@ -121,11 +126,22 @@ public class TopSitesPanel extends HomeFragment {
         }
     }
 
+    public interface BrowserTilesRecorderProvider {
+        public TilesRecorder getTilesRecorder();
+    }
+
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
 
         mMaxGridEntries = activity.getResources().getInteger(R.integer.number_of_top_sites);
+
+        try {
+            mTilesRecorder = ((BrowserTilesRecorderProvider) activity).getTilesRecorder();
+        } catch (ClassCastException e) {
+            throw new ClassCastException(activity.toString()
+                    + " must implement TopSitesPanel.BrowserTilesRecorderProvider");
+        }
     }
 
     @Override
@@ -215,6 +231,8 @@ public class TopSitesPanel extends HomeFragment {
                         }
                         Telemetry.sendUIEvent(TelemetryContract.Event.LOAD_URL, method, Integer.toString(position));
 
+                        mTilesRecorder.recordAction("click", position, getTilesSnapshot());
+
                         mUrlOpenListener.onUrlOpen(url, EnumSet.noneOf(OnUrlOpenListener.Flags.class));
                     }
                 } else {
@@ -260,6 +278,25 @@ public class TopSitesPanel extends HomeFragment {
 
         registerForContextMenu(mList);
         registerForContextMenu(mGrid);
+    }
+
+    private TilesSnapshot getTilesSnapshot() {
+        final int count = mGrid.getCount();
+        final TilesSnapshot snapshot = new TilesSnapshot();
+        for (int i = 0; i < count; i++) {
+            final Cursor cursor = (Cursor) mGrid.getItemAtPosition(i);
+            final int type = cursor.getInt(cursor.getColumnIndexOrThrow(TopSites.TYPE));
+
+            if (type == TopSites.TYPE_BLANK) {
+                continue;
+            }
+
+            final String url = cursor.getString(cursor.getColumnIndexOrThrow(TopSites.URL));
+            final int id = BrowserDB.getTrackingIdForUrl(url);
+            final boolean pinned = (type == TopSites.TYPE_PINNED);
+            snapshot.add(id, pinned, i);
+        }
+        return snapshot;
     }
 
     @Override
@@ -457,6 +494,14 @@ public class TopSitesPanel extends HomeFragment {
     private void updateUiWithThumbnails(Map<String, ThumbnailInfo> thumbnails) {
         if (mGridAdapter != null) {
             mGridAdapter.updateThumbnails(thumbnails);
+
+            // Orientation changes and other events can cause the loader to reset, causing the UI
+            // to be updated. We consider a "view" to be a single session where the user explicitly
+            // opens and closes the fragment, so ignore any additional updates.
+            if (!mDidRecordTilesView) {
+                mTilesRecorder.recordView(getTilesSnapshot());
+                mDidRecordTilesView = true;
+            }
         }
 
         // Once thumbnails have finished loading, the UI is ready. Reset
