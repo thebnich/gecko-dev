@@ -146,9 +146,11 @@ public class TilesUploadService extends IntentService {
       cursor.close();
     }
 
+    final TilesClockManager clockManager = tilesProvider.getClockManager();
+
     final JSONObject timeSync = new JSONObject();
-    timeSync.put("clock", tilesProvider.getClock());
-    timeSync.put("realtime", tilesProvider.getAndUpdateRealtime());
+    timeSync.put("clock", clockManager.getClock());
+    timeSync.put("realtime", clockManager.getAndUpdateRealtime());
 
     final JSONObject payload = new JSONObject();
     payload.put("ts", timeSync);
@@ -167,7 +169,7 @@ public class TilesUploadService extends IntentService {
     // BRN: Bail if metrics reporting is disabled.
 
     // Update the last realtime to help detect reboots.
-    tilesProvider.getAndUpdateRealtime();
+    tilesProvider.getClockManager().getAndUpdateRealtime();
 
     final String action = intent.getAction();
     if (action == null) {
@@ -223,7 +225,7 @@ public class TilesUploadService extends IntentService {
       }
 
       Log.d(LOG_TAG, "Server time is: " + serverTime);
-      tilesProvider.updateLastUploadTimeForCurrentClock(serverTime);
+      tilesProvider.getClockManager().updateLastUploadTimeForCurrentClock(serverTime);
       return true;
     } catch (JSONException e) {
       Log.e(LOG_TAG, "Error building tiles payload", e);

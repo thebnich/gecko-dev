@@ -14,7 +14,7 @@ public class TilesConstants {
 
   // BRN: Update these with real values.
   public static final String USER_AGENT = "Firefox-Android-Tiles/@MOZ_APP_VERSION@ (@MOZ_APP_DISPLAYNAME@)";
-  public static final String SERVER_SPEC = "http://requestb.in/r2sjgrr2";
+  public static final String SERVER_SPEC = "http://requestb.in/yj6d2lyj";
   public static final int UPLOAD_INTERVAL_MSEC = 1000 * 30; // testing only
   public static final int UPLOAD_TIMEOUT_MSEC = 1000 * 30; // 30 seconds
 

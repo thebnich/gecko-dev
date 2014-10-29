@@ -54,34 +54,14 @@ public class TilesContentProvider extends ContentProvider {
 
   private final ConcurrentLinkedQueue<TileEvent> recordedEvents = new ConcurrentLinkedQueue<>();
   private volatile SharedPreferences prefs;
-  private volatile int clock;
-
-  // The absolute server time of the last upload, or 0 if undefined. Nonzero as long as an upload
-  // has ever occurred in the past, even if the last upload did not happen on the current clock.
-  private volatile long lastUploadAbsTime;
-
-  // The realtime of the last upload, or 0 if undefined. Nonzero only if an upload has occurred on
-  // the current clock. lastUploadRealtime being nonzero implies that lastUploadAbsTime is also nonzero.
-  private volatile long lastUploadRealtime;
+  private volatile TilesClockManager clockManager;
 
   @Override
   public boolean onCreate() {
+    Log.d(LOG_TAG, "onCreate");
+
     prefs = getContext().getSharedPreferences(TilesConstants.PREFS_BRANCH, 0);
-
-    final int lastClock = prefs.getInt(TilesConstants.PREF_CLOCK, 0);
-    final long realtime = SystemClock.elapsedRealtime();
-    clock = getAndUpdateClock(prefs, lastClock, realtime);
-
-    // Restore the previous upload absolute time and realtime if they happened on the same clock.
-    // These allow us to set the calculated and minimum times for future uploads to improve accuracy.
-    lastUploadAbsTime = prefs.getLong(TilesConstants.PREF_LAST_UPLOAD_ABS_TIME, 0);
-    if (lastUploadAbsTime != 0) {
-      final int lastUploadClock = prefs.getInt(TilesConstants.PREF_LAST_UPLOAD_CLOCK, 0);
-      if (lastUploadClock == clock) {
-        lastUploadRealtime = prefs.getLong(TilesConstants.PREF_LAST_UPLOAD_REALTIME, 0);
-      }
-    }
-
+    clockManager = new TilesClockManager(prefs);
     return true;
   }
 
@@ -103,7 +83,7 @@ public class TilesContentProvider extends ContentProvider {
     TileEvent event;
     while ((event = recordedEvents.poll()) != null) {
       // BRN: Write these to disk instead of using them directly.
-      cursor.addRow(new Object[] { event.event, event.index, event.tiles, clock, event.realtime,
+      cursor.addRow(new Object[] { event.event, event.index, event.tiles, clockManager.getClock(), event.realtime,
                                    event.calcTime, event.minTime });
     }
 
@@ -124,22 +104,18 @@ public class TilesContentProvider extends ContentProvider {
     // last upload server absolute time to make a reasonable guess for the absolute time this
     // event occurred, relative to the server time.
     final long realtime = SystemClock.elapsedRealtime();
-    final long calcTime;
-    if (lastUploadRealtime != 0) {
-      calcTime = lastUploadAbsTime + realtime - lastUploadRealtime;
-    } else {
-      calcTime = 0;
-    }
+    final long calcTime = clockManager.getCalculatedServerTime(realtime);
+    final long minTime = clockManager.getLastUploadServerTime();
 
     switch (eventName) {
     case EventsContract.EVENT_CLICK:
     case EventsContract.EVENT_PIN:
     case EventsContract.EVENT_UNPIN:
       final int index = values.getAsInteger(EventsContract.COLUMN_INDEX);
-      event = new TileEvent(eventName, index, tiles, realtime, calcTime, lastUploadAbsTime);
+      event = new TileEvent(eventName, index, tiles, realtime, calcTime, minTime);
       break;
     case EventsContract.EVENT_VIEW:
-      event = new TileEvent(eventName, -1, tiles, realtime, calcTime, lastUploadAbsTime);
+      event = new TileEvent(eventName, -1, tiles, realtime, calcTime, minTime);
       break;
     default:
       throw new IllegalArgumentException("Unknown event: " + eventName);
@@ -181,80 +157,12 @@ public class TilesContentProvider extends ContentProvider {
   }
 
   /**
-   * Gets a counter that is incremented on each boot.
+   * Gets the clock manager instance associated with this provider.
    *
-   * This counter is a unique identifier used as a reference for saved realtime values.
-   *
-   * @return the clock ID
+   * @return the clock manager
    */
-  public int getClock() {
-    return clock;
-  }
-
-  /**
-   * Fetches the realtime clock while also recording the value in prefs.
-   *
-   * @return the current realtime
-   */
-  public long getAndUpdateRealtime() {
-    final long realtime = SystemClock.elapsedRealtime();
-    prefs.edit().putLong(TilesConstants.PREF_LAST_REALTIME, realtime).apply();
-    return realtime;
-  }
-
-  /**
-   * Updates the clock and time, both in memory and shared prefs, based on an absolute server time.
-   *
-   * @param absTime the absolute server time
-   */
-  public void updateLastUploadTimeForCurrentClock(long absTime) {
-    if (absTime <= 0) {
-      throw new IllegalArgumentException("Invalid time");
-    }
-
-    lastUploadAbsTime = absTime;
-    lastUploadRealtime = SystemClock.elapsedRealtime();
-
-    prefs.edit().putLong(TilesConstants.PREF_LAST_UPLOAD_ABS_TIME, lastUploadAbsTime)
-                .putLong(TilesConstants.PREF_LAST_UPLOAD_REALTIME, lastUploadRealtime)
-                .putInt(TilesConstants.PREF_LAST_UPLOAD_CLOCK, clock)
-                .apply();
-  }
-
-  /**
-   * Fetches the current clock ID while also recording it and the realtime in prefs.
-   *
-   * @return the current clock
-   */
-  public static int getAndUpdateClock(SharedPreferences prefs, int clock, long realtime) {
-    // Get the current clock counter, incrementing it if we rebooted.
-    final long lastRealtime = prefs.getLong(TilesConstants.PREF_LAST_REALTIME, Long.MAX_VALUE);
-    final SharedPreferences.Editor prefsEditor = prefs.edit();
-
-    if (realtime < lastRealtime) {
-      // If the current realtime is less than the last realtime, assume we've rebooted.
-      clock++;
-      prefsEditor.putInt(TilesConstants.PREF_CLOCK, clock);
-    }
-
-    prefsEditor.putLong(TilesConstants.PREF_LAST_REALTIME, realtime).apply();
-    Log.d(LOG_TAG, "Using clock: " + clock);
-    return clock;
-  }
-
-  /**
-   * Fetches the last absolute server time recorded for the given clock.
-   *
-   * @return the last server time if there was previously an upload during the given clock period,
-   *         or 0 otherwise
-   */
-  public static long getMinimumTime(SharedPreferences prefs, int clock) {
-    final int lastClock = prefs.getInt(TilesConstants.PREF_LAST_UPLOAD_CLOCK, 0);
-    if (lastClock != clock) {
-      return 0;
-    }
-
-    return prefs.getLong(TilesConstants.PREF_LAST_UPLOAD_ABS_TIME, 0);
+  public TilesClockManager getClockManager() {
+    return clockManager;
   }
 
   private static class TileEvent {
