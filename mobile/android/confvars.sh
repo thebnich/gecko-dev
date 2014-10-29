@@ -94,6 +94,9 @@ if test ! "$RELEASE_BUILD"; then
   MOZ_ANDROID_DOWNLOADS_INTEGRATION=1
 fi
 
+# Enable tiles metrics reporting.
+MOZ_ANDROID_TILES_REPORTING=1
+
 # Enable generational GC on mobile.
 JSGC_GENERATIONAL=1
 
