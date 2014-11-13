@@ -15,7 +15,7 @@ function add_request_listener(message) {
 
 function add_exception_listener(message) {
   Messaging.addListener(function (data) {
-    throw "error!";
+    throw new Error("error!");
   }, message);
 }
 
