@@ -9,16 +9,15 @@ import java.util.List;
 
 import org.mozilla.gecko.GeckoAppShell;
 import org.mozilla.gecko.GeckoEvent;
+import org.mozilla.gecko.NewTabletUI;
 import org.mozilla.gecko.R;
 
 import android.content.Context;
-import android.content.DialogInterface;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -27,6 +26,7 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 
 public class TabHistoryFragment extends Fragment implements OnItemClickListener, OnClickListener {
     private static final String ARG_LIST = "historyPageList";
@@ -68,6 +68,13 @@ public class TabHistoryFragment extends Fragment implements OnItemClickListener,
         View view = inflater.inflate(R.layout.tab_history_layout, container, false);
         view.setOnClickListener(this);
         dialogList = (ListView) view.findViewById(R.id.tab_history_list);
+        // Following code will be removed when new tablet ui becomes the default one.
+        if (NewTabletUI.isEnabled(getActivity())) {
+            int paddingTopInPX = getResources().getDimensionPixelSize(R.dimen.new_tablet_browser_toolbar_height);
+            RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(dialogList.getLayoutParams());
+            layoutParams.setMargins(0, paddingTopInPX, 0, 0);
+            dialogList.setLayoutParams(layoutParams);
+        }
         dialogList.setDivider(null);
         return view;
     }
